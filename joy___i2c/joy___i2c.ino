@@ -8,8 +8,7 @@
 
 /*-----( Declare Constants )-----*/
 /*-----( Declare objects )-----*/
-// set the LCD address to 0x27 for a 16 chars 2 line display
-// A FEW use address 0x3F
+// set the LCD address to 0x3F for a 16 chars 2 line display
 // Set the pins on the I2C chip used for LCD connections:
 //                    addr, en,rw,rs,d4,d5,d6,d7,bl,blpol
 LiquidCrystal_I2C lcd(0x3F, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);  // Set the LCD I2C address
@@ -68,6 +67,24 @@ void loop()   /*----( LOOP: RUNS CONSTANTLY )----*/
 {
   int oldButtonState = 1;
 
+  //read the analog in value for light sensor
+  lightValue = analogRead(analogLInPin);
+  //outputLightValue = map(lightValue,0,1023,0,255);
+  Serial.print(lightValue);
+  Serial.println();
+  lcd.setCursor(0,1);
+  lcd.print("L sensor: ");
+  if(lightValue > 0)
+  {
+    Serial.print("on ");
+    lcd.print("ON ");
+  }else
+  {
+    Serial.print("off ");
+    lcd.print("OFF");
+  }
+  
+  delay(100);
 
   // read the analog in value:
   sensorXValue = analogRead(analogXInPin);            
@@ -105,12 +122,7 @@ void loop()   /*----( LOOP: RUNS CONSTANTLY )----*/
 */
   Serial.print(" | B: ");
   Serial.println(buttonState);
-
-
-  //read the analog in value for light sensor
-  lightValue = analogRead(analogLInPin);
-  outputLightValue = map(lightValue,0,1023,0,255);
-
+  
   lcd.setCursor(0,0);
   lcd.print("X:");
   lcd.print(sensorXValue);
@@ -120,17 +132,6 @@ void loop()   /*----( LOOP: RUNS CONSTANTLY )----*/
   lcd.setCursor(12,0);
   lcd.print("B:");
   lcd.print(buttonState);
-  lcd.setCursor(0,1);
-  lcd.print("L sensor: ");
-  if(outputLightValue > 120)
-  {
-    Serial.print("on");
-    lcd.print("ON");
-  }else
-  {
-    Serial.print("off");
-    lcd.print("OFF");
-  }
 
 /*
   if( sensorXValue < 497){
@@ -175,7 +176,18 @@ void loop()   /*----( LOOP: RUNS CONSTANTLY )----*/
   }
 }/* --(end main loop )-- */
 
-
+//void updateLightSensor(lightValue)
+//{
+//  if(lightValue > 200)
+//  {
+//    Serial.print("on ");
+//    lcd.print("ON ");
+//  }else
+//  {
+//    Serial.print("off ");
+//    lcd.print("OFF");
+//  }  
+//}
 /* ( THE END ) */
 
 
