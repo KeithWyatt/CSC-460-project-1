@@ -21,6 +21,8 @@ const int analogYInPin = A1; // Analog Y input pin that the joystick Y is attach
 
 const int analogLInPin = A3;  // Analog pin for light sensor
 
+const int laserPin = 10;       // Laser pin
+
 
 int sensorXValue = 0;        // value read from the joystick X
 int sensorYValue = 0;       // value read from the joystick Y
@@ -57,6 +59,8 @@ void setup()   /*----( SETUP: RUNS ONCE )----*/
   myservo.writeMicroseconds(1500);  // set servo to mid-point
   myservoY.attach(3);  // attaches the servo on pin 9 to the servo object 
   myservoY.writeMicroseconds(1500);  // set servo to mid-point
+  
+  pinMode (laserPin, OUTPUT); // Setting output for laser
 
 }
 void loop()   /*----( LOOP: RUNS CONSTANTLY )----*/
@@ -180,7 +184,13 @@ void loop()   /*----( LOOP: RUNS CONSTANTLY )----*/
     oldCurrentXPos = currentX;
     oldCurrentYPos = currentY;
     
-    delay(2);
+   if (buttonState == 0){
+     digitalWrite (laserPin, HIGH); // Turn Laser On
+   }else{
+     digitalWrite (laserPin, LOW); // Turn Laser off
+   }
+
+
   }
 }/* --(end main loop )-- */
 
