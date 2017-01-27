@@ -15,61 +15,61 @@ LiquidCrystal_I2C lcd(0x3F, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);  // Set the LCD I
 
 /*-----( Declare Variables )-----*/
 
-const int analogXInPin = A0;  // Analog X input pin that the joystick X axis is attached to
+const int analogXInPin = A0;        // Analog X input pin that the joystick X axis is attached to
 
-const int analogYInPin = A1; // Analog Y input pin that the joystick Y is attached to
+const int analogYInPin = A1;        // Analog Y input pin that the joystick Y is attached to
 
-const int analogLInPin = A3;  // Analog pin for light sensor
+const int analogLInPin = A3;        // Analog pin for light sensor
 
-const int laserPin = 10;       // Laser pin
+const int laserPin = 10;            // Laser pin
 
 
-int sensorXValue = 0;        // value read from the joystick X
-int sensorYValue = 0;       // value read from the joystick Y
+int sensorXValue = 0;               // value read from the joystick X
+int sensorYValue = 0;               // value read from the joystick Y
 
-int oldXValue = 10;        // can maybe change?
-int oldYValue = 10;        // can maybe change?
+int oldXValue = 10;                 // can maybe change?
+int oldYValue = 10;                 // can maybe change?
 
-int buttonPin = 19;        // uses pin 19 for joystick button
+int buttonPin = 19;                 // uses pin 19 for joystick button
 int buttonState = 0;
-int oldButtonState = 1;    // opposite of buttonState so the application can check button changes
+int oldButtonState = 1;             // opposite of buttonState so the application can check button changes
 
 int lightValue = 0;
 
-Servo myservo;  // create servo object to control a pan servo (X axis)
-Servo myservoY;   // servo object to control tilt servo ( Y axis) 
-
-//int defaultpos = 1500;    // variable to store the servo position 
-int lowpos = 1000;        // lowest servo position
-int highpos = 2000;      // highest servo position
-int currentX = 1500;          // current X servo position
-int currentY = 1500;          // current Y servo position
-int oldCurrentXPos = 1500;    // old current X servo position
-int oldCurrentYPos = 1500;    // old current Y servo position
+Servo myservo;                      // create servo object to control a pan servo (X axis)
+Servo myservoY;                     // servo object to control tilt servo ( Y axis) 
+ 
+int lowpos = 1000;                  // lowest servo position
+int highpos = 2000;                 // highest servo position
+int currentX = 1500;                // current X servo position
+int currentY = 1500;                // current Y servo position
+int oldCurrentXPos = 1500;          // old current X servo position
+int oldCurrentYPos = 1500;          // old current Y servo position
 
 void setup()   /*----( SETUP: RUNS ONCE )----*/
 {
-  Serial.begin(9600);  // Used to type in characters
+  Serial.begin(9600);               // Used to type in characters
 
-  lcd.begin(16,2);   // initialize the lcd for 16 chars 2 lines, turn on backlight
+  lcd.begin(16,2);                  // initialize the lcd for 16 chars 2 lines, turn on backlight
   
   pinMode(buttonPin, INPUT_PULLUP); //for joystick button
   
-  myservo.attach(2);  // attaches the servo on pin 9 to the servo object 
+  myservo.attach(2);                // attaches the servo on pin 9 to the servo object 
   myservo.writeMicroseconds(1500);  // set servo to mid-point
-  myservoY.attach(3);  // attaches the servo on pin 9 to the servo object 
-  myservoY.writeMicroseconds(1500);  // set servo to mid-point
+  myservoY.attach(3);               // attaches the servo on pin 9 to the servo object 
+  myservoY.writeMicroseconds(1500); // set servo to mid-point
   
-  pinMode (laserPin, OUTPUT); // Setting output for laser
-
+  pinMode (laserPin, OUTPUT);       // Setting laser pin as output
 }
 void loop()   /*----( LOOP: RUNS CONSTANTLY )----*/
 {
   
   int oldButtonState = 1;
+  
+  //read the analog in value for light sensor
+  lightValue = analogRead(analogLInPin);    
 
-  lightValue = analogRead(analogLInPin);    //read the analog in value for light sensor
-
+  // display light sensor info on LCD
   lcd.setCursor(0,1);
   lcd.print("L sensor: ");
   if(lightValue > 200)
@@ -79,33 +79,33 @@ void loop()   /*----( LOOP: RUNS CONSTANTLY )----*/
   {
     lcd.print("OFF");
   }
-  
+
+  // determine if laser should be on or off given the state of the button
+  if (buttonState == 0)
+  {
+   digitalWrite (laserPin, HIGH); // Turn Laser On
+  }
+  else
+  {
+   digitalWrite (laserPin, LOW); // Turn Laser off
+  }  
   delay(100);
 
-  // read the analog in value:
+  // read the analog in value for joystick x axis:
   sensorXValue = analogRead(analogXInPin);              
 
-  // read the analog in value:
+  // read the analog in value for joystick y axis:
   sensorYValue = analogRead(analogYInPin);                 
- 
+
+  // read the button state
   buttonState = digitalRead(buttonPin);  
-  
-  if( (oldXValue > (sensorXValue + 25)) || (oldXValue < (sensorXValue - 25)) || 
-  (oldYValue > (sensorYValue + 25)) || (oldYValue < (sensorYValue - 25)) || 
+
+  // stops the LCD from updating joystick x and y axis info for small changes
+  if( (oldXValue > (sensorXValue + 35)) || (oldXValue < (sensorXValue - 35)) || 
+  (oldYValue > (sensorYValue + 35)) || (oldYValue < (sensorYValue - 35)) || 
   (oldButtonState != buttonState || oldYValue < 30 || oldYValue > 990 || oldXValue <30 || oldXValue > 990))
   {
-    
-    // For debugging print the results to the serial monitor:
-    Serial.print("X: " );                       
-    Serial.print(sensorXValue);      
-
-    // print the results to the serial monitor:
-    Serial.print(" | Y: " );                       
-    Serial.print(sensorYValue);      
-
-    Serial.print(" | B: ");
-    Serial.println(buttonState);
-    
+     
     lcd.setCursor(0,0);
     lcd.print("X:");
     lcd.print(sensorXValue);
@@ -116,36 +116,37 @@ void loop()   /*----( LOOP: RUNS CONSTANTLY )----*/
     lcd.print("B:");
     lcd.print(buttonState);
   
-  
-    if( sensorXValue < 400){     
+    // create a deadzone around joystick center
+    if( sensorXValue < 400){
+      // increment only 100 steps at one time     
       for(currentX = oldCurrentXPos; currentX >= (oldCurrentXPos-100); currentX -= 1)     // moves servo X position to the right
       {
                              
         myservo.writeMicroseconds(currentX);              // tell servo to go to position in variable 'currentX' 
-        delayMicroseconds(2500);                       // waits 2.5ms for the servo to reach the position 
-        if(currentX < 1000)
+        delayMicroseconds(2500);                          // waits 2.5ms for the servo to reach the position 
+        // limit the amount the servo can move right
+        if(currentX < lowpos)
         {
-          currentX = 1000;
+          currentX = lowpos;
           break;
         }
-        Serial.print(currentX);
-      } 
+      }
+      //update last position       
       oldCurrentXPos=currentX;
     }
    
-    else if( sensorXValue > 600)    //was 497 
+    else if( sensorXValue > 600) 
     {  
       for(currentX = oldCurrentXPos; currentX <= (oldCurrentXPos+100); currentX += 1)     // moves servo X position to the left
       {                              
         myservo.writeMicroseconds(currentX);              // tell servo to go to position in variable 'currentX' 
-        delayMicroseconds(2500);                       // waits 2.5ms for the servo to reach the position 
-        if(currentX > 2000)
+        delayMicroseconds(2500);                          // waits 2.5ms for the servo to reach the position 
+        if(currentX > highpos)
           {
-            currentX = 2000;
+            currentX = highpos;
             break;
           }
-        Serial.print(currentX);
-      } 
+      }
       oldCurrentXPos=currentX;  
     }
     
@@ -153,11 +154,11 @@ void loop()   /*----( LOOP: RUNS CONSTANTLY )----*/
     {
       for(currentY = oldCurrentYPos; currentY >= (oldCurrentYPos-100); currentY -= 1)     // moves servo X position to the left
       {                              
-        myservoY.writeMicroseconds(currentY);              // tell servo to go to position in variable 'currentY' 
-        delayMicroseconds(2500);                       // waits 2.5ms for the servo to reach the position 
-        if(currentY < 1200)
+        myservoY.writeMicroseconds(currentY);             // tell servo to go to position in variable 'currentY' 
+        delayMicroseconds(2500);                          // waits 2.5ms for the servo to reach the position 
+        if(currentY < lowpos)
         {
-          currentY = 1200;
+          currentY = lowpos;
           break;
         }      
       }   
@@ -169,9 +170,9 @@ void loop()   /*----( LOOP: RUNS CONSTANTLY )----*/
       {                              
         myservoY.writeMicroseconds(currentY);              // tell servo to go to position in variable 'currentY' 
         delayMicroseconds(2500);                      // waits 2.5ms for the servo to reach the position 
-        if(currentY > 2000)
+        if(currentY > highpos)
           {
-            currentY = 2000;
+            currentY = highpos;
             break;
           }      
       }
@@ -183,13 +184,6 @@ void loop()   /*----( LOOP: RUNS CONSTANTLY )----*/
     
     oldCurrentXPos = currentX;
     oldCurrentYPos = currentY;
-    
-   if (buttonState == 0){
-     digitalWrite (laserPin, HIGH); // Turn Laser On
-   }else{
-     digitalWrite (laserPin, LOW); // Turn Laser off
-   }
-
 
   }
 }/* --(end main loop )-- */
