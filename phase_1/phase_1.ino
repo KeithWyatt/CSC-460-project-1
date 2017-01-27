@@ -112,6 +112,7 @@ void loop()   /*----( LOOP: RUNS CONSTANTLY )----*/
     lcd.setCursor(5,0);
     lcd.print(" Y:");
     lcd.print(sensorYValue);
+    lcd.print(' ');
     lcd.setCursor(13,0);
     lcd.print("B:");
     lcd.print(buttonState);
