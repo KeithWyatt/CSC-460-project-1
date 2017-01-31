@@ -19,7 +19,7 @@ const int analogXInPin = A0;        // Analog X input pin that the joystick X ax
 
 const int analogYInPin = A1;        // Analog Y input pin that the joystick Y is attached to
 
-const int analogLInPin = A3;        // Analog pin for light sensor
+const int analogLInPin = A4;        // Analog pin for light sensor
 
 const int laserPin = 10;            // Laser pin
 
@@ -64,8 +64,7 @@ void setup()   /*----( SETUP: RUNS ONCE )----*/
 void loop()   /*----( LOOP: RUNS CONSTANTLY )----*/
 {
   
-  int oldButtonState = 1;
-  
+
   //read the analog in value for light sensor
   lightValue = analogRead(analogLInPin);    
 
@@ -185,6 +184,8 @@ void loop()   /*----( LOOP: RUNS CONSTANTLY )----*/
     
     oldCurrentXPos = currentX;
     oldCurrentYPos = currentY;
+    
+    oldButtonState = buttonState;
 
   }
 }/* --(end main loop )-- */
