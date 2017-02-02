@@ -28,7 +28,7 @@ const int roombaYPin = A3;        // Y axis pin for the joystick that controls t
 const int analogLInPin = A7;        // Analog pin for light sensor
 int lightValue = 0;
 
-
+// uint8_t
 int servoXValue = 0;            // X axis value for the joystick that controls the servo
 int servoYValue = 0;            // Y axis value for the joystick that controls the servo
 
@@ -41,48 +41,23 @@ int roombaYValue = 0;            // Y axis value for the joystick that controls 
 
 
 int buttonPin = 15;                 // uses pin 15 for joystick button
-int buttonState = 0;
-int oldButtonState = 1;             // opposite of buttonState so the application can check button changes
+int buttonState = 1;
+int oldButtonState = 1;             
 
- char buf[2] = {'a',1};
-// buf = (char*) malloc(char*2);
-
-void setup()
-{
-  
-  Serial.begin(9600);
-  Serial1.begin(9600);
-
-  lcd.begin(16,2);                  // initialize the lcd for 16 chars 2 lines, turn on backlight
-
-  pinMode(buttonPin, INPUT_PULLUP); //for joystick button
-
-  Scheduler_Init();
- 
-  // Start task arguments are:
-  // Start offset in ms, period in ms, function callback
- 
-  Scheduler_StartTask(0, 100, buttonTask);
-  //Scheduler_StartTask(0, 300, pulse_pin2_task);
-}
 
 void buttonTask()
 {
   
  buttonState = digitalRead(buttonPin); 
   
- if( Serial.available())
-{
+ if( buttonState != oldButtonState){
 
- Serial1.print(buf); 
-}
-//  NOT SURE WHY WE NEED THIS PART
+ Serial1.write(0x03);
+ Serial1.write(buttonState); 
 
-if( Serial1.available())
- {
-  Serial.print((char)Serial1.read()); 
- }  
-  
+ oldButtonState = buttonState;
+
+ }
 }
 
 void idle(uint32_t idle_period)
@@ -92,7 +67,6 @@ void idle(uint32_t idle_period)
 	// could sleep or respond to I/O.
  
 	delay(idle_period);
-
 }
   
 void lightSensorTask()
@@ -102,7 +76,6 @@ void lightSensorTask()
   lightValue = analogRead(analogLInPin); 
   
 }
-  
   
 void roombaTask()
 {
@@ -117,87 +90,75 @@ void roombaTask()
   if( roombaXValue < 400)
   {
   
-    if( Serial.available())
-    {
-
       Serial1.print("b");
       Serial1.print(roombaXValue); 
-    }
-/*  NOT SURE WHY WE NEED THIS PART
-
-if( Serial1.available())
- {
-  Serial.print(Serial1.read()); 
- }  
-  */
     
   // roomba going right
   }else if( roombaXValue > 600) 
   {  
-    if( Serial.available())
-    {
 
       Serial1.print("c");
       Serial1.print(roombaXValue); 
-    }
-/*  NOT SURE WHY WE NEED THIS PART
-
-if( Serial1.available())
- {
-  Serial.print(Serial1.read()); 
- }  
-  */
-    
+   
   }
     // roomba going backwards
     if( roombaYValue < 400)
     {
-     if( Serial.available())
-    {
 
       Serial1.print("d");
       Serial1.print(roombaYValue); 
-    }
-/*  NOT SURE WHY WE NEED THIS PART
 
-if( Serial1.available())
- {
-  Serial.print(Serial1.read()); 
- }  
-  */
     }
     
     // roomba going forwards
     else if( roombaYValue > 600)
     {
-        if( Serial.available())
-    {
-
+    
       Serial1.print("e");
       Serial1.print(roombaYValue); 
     }
-/*  NOT SURE WHY WE NEED THIS PART
-
-if( Serial1.available())
- {
-  Serial.print(Serial1.read()); 
- }  
-  */
-    }
-  
-    oldServoXValue = servoXValue;
-    oldServoYValue = servoYValue;
-    oldButtonState = buttonState;
-
   }
 
-void servoTask()
+void servoXTask()
 {
  
   // reads the X value from the joystick for servo
-  servoXValue = analogRead(servoXPin);              
+  servoXValue = analogRead(servoXPin);  
   // reads the Y value from the joystick for servo
-  servoYValue = analogRead(servoYPin);  
+  servoYValue = analogRead(servoYPin); 
+  
+  servoYValue = map(servoYValue,0,1023,0,255);
+  
+  servoXValue = map(servoXValue,0,1023,0,255);
+
+    Serial1.write(0x01);
+    Serial1.write(servoXValue); 
+     
+
+    Serial1.write(0x02);
+    Serial1.write(servoYValue); 
+   
+}
+  
+void servoYTask()
+{
+
+  // reads the Y value from the joystick for servo
+  servoYValue = analogRead(servoYPin); 
+  
+  servoYValue = map(servoYValue,0,1023,0,255);
+  
+  if( Serial.available())
+  {
+
+    Serial1.write(0x02);
+    Serial1.write(servoYValue); 
+  }
+
+   if( Serial1.available())
+   {
+     Serial.write(Serial1.read()); 
+   }  
   
 }
   
@@ -235,10 +196,31 @@ void lcdTask()
   {
     lcd.print("OFF");
   }
-
  
 }
+void setup()
+{
+  
+  Serial.begin(9600);
+  Serial1.begin(9600);
 
+  lcd.begin(16,2);                  // initialize the lcd for 16 chars 2 lines, turn on backlight
+
+  pinMode(buttonPin, INPUT_PULLUP); //for joystick button
+
+  Scheduler_Init();
+ 
+  // Start task arguments are:
+  // Start offset in ms, period in ms, function callback
+ 
+  Scheduler_StartTask(0, 100, buttonTask);
+  Scheduler_StartTask(4, 100, servoXTask);
+//  Scheduler_StartTask(6, 100, servoYTask);
+//  Scheduler_StartTask(0, 100, roombaTask);
+  Scheduler_StartTask(8, 300, lcdTask);
+  
+  //Scheduler_StartTask(0, 300, pulse_pin2_task);
+}
 void loop()
 {
    
