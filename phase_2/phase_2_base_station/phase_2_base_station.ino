@@ -86,37 +86,24 @@ void roombaTask()
   // reads the Y value from the joystick for roomba
   roombaYValue = analogRead(roombaYPin);  
   
+  roombaYValue = map(roombaYValue,0,1023,0,255);
   
-      // create a deadzone around joystick center, roomba going right
-  if( roombaXValue < 400)
+  roombaXValue = map(roombaXValue,0,1023,0,255);
+  
+      // create a deadzone around joystick center, roomba on X axis
+  if( roombaXValue < 100 || roombaXValue > 150)
   {
   
-      Serial1.print("b");
-      Serial1.print(roombaXValue); 
+      Serial1.write(0x04);
+      Serial1.write(roombaXValue); 
     
-  // roomba going right
-  }else if( roombaXValue > 600) 
-  {  
-
-      Serial1.print("c");
-      Serial1.print(roombaXValue); 
-   
-  }
-    // roomba going backwards
-    if( roombaYValue < 400)
+    // roomba on Y axis
+    if( roombaYValue < 100 || roombaYValue > 150)
     {
 
-      Serial1.print("d");
-      Serial1.print(roombaYValue); 
+      Serial1.write(0x05);
+      Serial1.write(roombaYValue); 
 
-    }
-    
-    // roomba going forwards
-    else if( roombaYValue > 600)
-    {
-    
-      Serial1.print("e");
-      Serial1.print(roombaYValue); 
     }
   }
 
