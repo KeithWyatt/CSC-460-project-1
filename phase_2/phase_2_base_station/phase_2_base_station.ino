@@ -48,16 +48,17 @@ int oldButtonState = 1;
 void buttonTask()
 {
   
- buttonState = digitalRead(buttonPin); 
+  buttonState = digitalRead(buttonPin); 
   
- if( buttonState != oldButtonState){
-
- Serial1.write(0x03);
- Serial1.write(buttonState); 
-
- oldButtonState = buttonState;
-
- }
+  if( buttonState != oldButtonState)
+  {
+  
+   Serial1.write(0x03);
+   Serial1.write(buttonState); 
+  
+   oldButtonState = buttonState;
+  
+  }
 }
 
 void idle(uint32_t idle_period)
@@ -131,13 +132,16 @@ void servoXTask()
   
   servoXValue = map(servoXValue,0,1023,0,255);
 
+  if((servoXValue < 100) || (servoXValue > 150))
+  {
     Serial1.write(0x01);
     Serial1.write(servoXValue); 
-     
-
+  }  
+  if((servoYValue < 100) || (servoYValue > 150))
+  {
     Serial1.write(0x02);
     Serial1.write(servoYValue); 
-   
+  }
 }
   
 void servoYTask()
@@ -148,17 +152,18 @@ void servoYTask()
   
   servoYValue = map(servoYValue,0,1023,0,255);
   
-  if( Serial.available())
+  if( (servoYValue < 100) || (servoYValue > 150))
   {
 
     Serial1.write(0x02);
     Serial1.write(servoYValue); 
   }
 
-   if( Serial1.available())
-   {
-     Serial.write(Serial1.read()); 
-   }  
+// not needed until remote station sends status updates
+//   if( Serial1.available())
+//   {
+//     Serial.write(Serial1.read()); 
+//   }  
   
 }
   
@@ -178,13 +183,22 @@ void lcdTask()
   lcd.setCursor(0,0);
   lcd.print("X:");
   lcd.print(servoXValue);
-  lcd.setCursor(5,0);
-  lcd.print(" Y:");
+  lcd.print(' ');
+  lcd.print("Y:");
   lcd.print(servoYValue);
   lcd.print(' ');
-  lcd.setCursor(13,0);
+  //lcd.setCursor(13,0);
   lcd.print("B:");
   lcd.print(buttonState);
+  if(servoYValue < 10)
+  {
+    lcd.print("     ");
+  }
+  else
+  {
+    lcd.print("  ");
+  }
+  
  
  
   lcd.setCursor(0,1);
@@ -201,8 +215,8 @@ void lcdTask()
 void setup()
 {
   
-  Serial.begin(9600);
-  Serial1.begin(9600);
+  Serial.begin(9600);                // Don't need until remote station is sending status updates
+  Serial1.begin(9600);            
 
   lcd.begin(16,2);                  // initialize the lcd for 16 chars 2 lines, turn on backlight
 
