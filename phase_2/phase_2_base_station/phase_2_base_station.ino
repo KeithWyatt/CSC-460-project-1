@@ -95,8 +95,10 @@ void roombaTask()
   {
   
       Serial1.write(0x04);
-      Serial1.write(roombaXValue); 
-    
+      Serial1.write(roombaXValue);
+     
+  }
+  
     // roomba on Y axis
     if( roombaYValue < 100 || roombaYValue > 150)
     {
@@ -104,8 +106,9 @@ void roombaTask()
       Serial1.write(0x05);
       Serial1.write(roombaYValue); 
 
-    }
+    
   }
+}
 
 void servoXTask()
 {
@@ -217,7 +220,7 @@ void setup()
   Scheduler_StartTask(0, 100, buttonTask);
   Scheduler_StartTask(4, 100, servoXTask);
 //  Scheduler_StartTask(6, 100, servoYTask);
-//  Scheduler_StartTask(0, 100, roombaTask);
+  Scheduler_StartTask(0, 100, roombaTask);
   Scheduler_StartTask(8, 300, lcdTask);
   
   //Scheduler_StartTask(0, 300, pulse_pin2_task);
