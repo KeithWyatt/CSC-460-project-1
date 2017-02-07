@@ -79,8 +79,7 @@ void task_read_bluetooth()
     default:
       // If the hardware address is unknown, do nothing.
       break;
-  }
-  
+  }  
   digitalWrite(8,LOW);
 }
 
@@ -94,7 +93,7 @@ void lightSensorTask()
 
 void task_drive_roomba()
 {
-
+  digitalWrite(11, HIGH);  
 
   if(roomba_directionX == 122 && roomba_directionY == 125)
   {
@@ -127,7 +126,7 @@ void task_drive_roomba()
   roomba_directionX = 122;
   roomba_directionY = 125;
 
-
+  digitalWrite(11, LOW);
 }
 
 void task_control_laser()
@@ -143,7 +142,6 @@ void task_control_laser()
   {
    digitalWrite (laserPin, LOW);               // Turn Laser off
   }
-  
   digitalWrite(9,LOW);  
 }
 
@@ -226,7 +224,6 @@ void task_control_servo()
   // reset servo values to non-movement values
   servoX = 122;
   servoY = 125;
-
   
   digitalWrite(10,LOW); 
 }
@@ -237,8 +234,9 @@ void task_idle(uint32_t idle_period)
   // this function can perform some low-priority task while the scheduler has nothing to run.
   // It should return before the idle period (measured in ms) has expired.  For example, it
   // could sleep or respond to I/O.
-
+  digitalWrite(12,HIGH);
   delay(idle_period);
+  digitalWrite(12,LOW);
 }
 
 void setup() {
@@ -261,9 +259,13 @@ void setup() {
   pinMode(8, OUTPUT);                                     // testing task_read_bluetooth
   pinMode(9,OUTPUT);                                      // testing task_control_servo
   pinMode(10,OUTPUT);                                     // testing task_control laser
+  pinMode(11,OUTPUT);                                     // testing task_drive_roomba
+  pinMode(12,OUTPUT);                                     // testing idle time
   digitalWrite(8, LOW);
   digitalWrite(9, LOW);
   digitalWrite(10, LOW);
+  digitalWrite(11, LOW);
+  digitalWrite(12,LOW);
 
   Scheduler_Init();
 
