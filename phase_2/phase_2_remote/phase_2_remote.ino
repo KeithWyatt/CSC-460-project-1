@@ -28,10 +28,13 @@ int roomba_directionY = 125;
 int servoX = 122;                   // value read from the joystick X
 int servoY = 125;                   // value read from the joystick Y
 
+int servoX_steps = 0;
+int servoY_steps = 0;
+
 int buttonState = 1;                // button is not pressed
 
-volatile int hw_addr;               // variable to store which device to control
-volatile int hw_instr;              // variable to store an instruction to give the device
+volatile int hw_addr =  0;               // variable to store which device to control
+volatile int hw_instr = 0;              // variable to store an instruction to give the device
 
 
 
@@ -91,13 +94,7 @@ void lightSensorTask()
 
 void task_drive_roomba()
 {
-  Serial.print("r_dirx ");
-  Serial.print(roomba_directionX);
-  Serial.println();
 
-  Serial.print("r_diry ");
-  Serial.print(roomba_directionY); 
-  Serial.println();
 
   if(roomba_directionX == 122 && roomba_directionY == 125)
   {
@@ -106,27 +103,23 @@ void task_drive_roomba()
   
   if(roomba_directionX < 100)
   {
-    Serial.print("r_dirx<100 ");
-    Serial.print(roomba_directionX);
+
     roombie.drive(50,-1);
   }
   else if(roomba_directionX > 150)
   {
-    Serial.print("r_dirx>150 ");
-    Serial.print(roomba_directionX);    
+    
     roombie.drive(50,1);
   }
 
   if(roomba_directionY < 100)
   {
-    Serial.print("r_diry<100 ");
-    Serial.print(roomba_directionY);    
+  
     roombie.drive(-150,32768);
   }
   else if(roomba_directionY > 150)
   {
-    Serial.print("r_dirx>150 ");
-    Serial.print(roomba_directionY);
+
     roombie.drive(150,32768);
   }
    
@@ -158,11 +151,17 @@ void task_control_servo()
 {
   digitalWrite(10,HIGH);
   
+//  Serial.print("servoX: ");
+//  Serial.print(servoX);
+//  Serial.println();
+//  Serial.print("servoY: ");
+//  Serial.print(servoY);
+//  Serial.println();
   // determine which direction to move pan servo
   if( servoX > 150){
-    
+    servoX_steps = servoX - 150;
     // increment only 100 steps at one time     
-    for(currentX = oldXPos; currentX >= (oldXPos-100); currentX -= 1)     // moves servo X position to the left
+    for(currentX = oldXPos; currentX >= (oldXPos-servoX_steps); currentX -= 1)     // moves servo X position to the left
     {                      
       myservoX.writeMicroseconds(currentX);                               // tell servo to go to position in variable 'currentX' 
       delayMicroseconds(2500);                                            // waits 2.5ms for the servo to reach the position 
@@ -177,8 +176,9 @@ void task_control_servo()
     oldXPos=currentX;
   }
    else if( servoX < 100) 
-  {  
-    for(currentX = oldXPos; currentX <= (oldXPos+100); currentX += 1)     // moves servo X position to the right
+  {
+    servoX_steps = 100 - servoX;
+    for(currentX = oldXPos; currentX <= (oldXPos+servoX_steps); currentX += 1)     // moves servo X position to the right
     {                              
       myservoX.writeMicroseconds(currentX);                               // tell servo to go to position in variable 'currentX' 
       delayMicroseconds(2500);                                            // waits 2.5ms for the servo to reach the position 
@@ -194,7 +194,8 @@ void task_control_servo()
   // determine which direction to move tilt servo
   if( servoY > 150)
   {
-    for(currentY = oldYPos; currentY >= (oldYPos-100); currentY -= 1)     // tilt servoY up
+    servoY_steps = servoY - 150;
+    for(currentY = oldYPos; currentY >= (oldYPos-servoY_steps); currentY -= 1)     // tilt servoY up
     {                              
       myservoY.writeMicroseconds(currentY);                               // tell servo to go to position in variable 'currentY' 
       delayMicroseconds(2500);                                            // waits 2.5ms for the servo to reach the position 
@@ -208,7 +209,8 @@ void task_control_servo()
   }
   else if( servoY < 100)
   {
-    for(currentY = oldYPos; currentY <= (oldYPos+100); currentY += 1)     // tilt servoY down
+    servoY_steps = 100 - servoY;
+    for(currentY = oldYPos; currentY <= (oldYPos+servoY_steps); currentY += 1)     // tilt servoY down
     {                              
       myservoY.writeMicroseconds(currentY);                               // tell servo to go to position in variable 'currentY' 
       delayMicroseconds(2500);                                            // waits 2.5ms for the servo to reach the position 
@@ -224,6 +226,7 @@ void task_control_servo()
   // reset servo values to non-movement values
   servoX = 122;
   servoY = 125;
+
   
   digitalWrite(10,LOW); 
 }
