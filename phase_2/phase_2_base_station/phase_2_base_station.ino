@@ -47,6 +47,7 @@ int oldButtonState = 1;
 
 void buttonTask()
 {
+  digitalWrite(37, HIGH);
   
   buttonState = digitalRead(buttonPin); 
   
@@ -59,6 +60,7 @@ void buttonTask()
    oldButtonState = buttonState;
   
   }
+  digitalWrite(37, LOW);
 }
 
 void idle(uint32_t idle_period)
@@ -66,21 +68,23 @@ void idle(uint32_t idle_period)
 	// this function can perform some low-priority task while the scheduler has nothing to run.
 	// It should return before the idle period (measured in ms) has expired.  For example, it
 	// could sleep or respond to I/O.
- 
+ digitalWrite(35, HIGH);
 	delay(idle_period);
+ digitalWrite(35, LOW);
 }
   
 void lightSensorTask()
 {
- 
+ digitalWrite(39, HIGH);
    //read the analog in value for light sensor
   lightValue = analogRead(analogLInPin); 
-  
+ digitalWrite(39, LOW);
 }
   
 void roombaTask()
 {
 
+  digitalWrite(41, HIGH);
    // reads the X value from the joystick for roomba
   roombaXValue = analogRead(roombaXPin);              
   // reads the Y value from the joystick for roomba
@@ -105,14 +109,15 @@ void roombaTask()
 
       Serial1.write(0x05);
       Serial1.write(roombaYValue); 
-
     
   }
+  digitalWrite(41, LOW);
 }
 
 void servoXTask()
 {
  
+  digitalWrite(43, HIGH);
   // reads the X value from the joystick for servo
   servoXValue = analogRead(servoXPin);  
   // reads the Y value from the joystick for servo
@@ -132,30 +137,9 @@ void servoXTask()
     Serial1.write(0x02);
     Serial1.write(servoYValue); 
   }
+  digitalWrite(43, LOW);
 }
   
-void servoYTask()
-{
-
-  // reads the Y value from the joystick for servo
-  servoYValue = analogRead(servoYPin); 
-  
-  servoYValue = map(servoYValue,0,1023,0,255);
-  
-  if( (servoYValue < 100) || (servoYValue > 150))
-  {
-
-    Serial1.write(0x02);
-    Serial1.write(servoYValue); 
-  }
-
-// not needed until remote station sends status updates
-//   if( Serial1.available())
-//   {
-//     Serial.write(Serial1.read()); 
-//   }  
-  
-}
   
 void lcdTask()
 {
@@ -169,6 +153,7 @@ void lcdTask()
   (oldButtonState != buttonState))
   {
   */  
+  digitalWrite(45, HIGH);
 
   lcd.setCursor(0,0);
   lcd.print("X:");
@@ -188,8 +173,6 @@ void lcdTask()
   {
     lcd.print("  ");
   }
-  
- 
  
   lcd.setCursor(0,1);
   lcd.print("L sensor: ");
@@ -200,7 +183,7 @@ void lcdTask()
   {
     lcd.print("OFF");
   }
- 
+ digitalWrite(45, LOW);
 }
 void setup()
 {
@@ -212,16 +195,32 @@ void setup()
 
   pinMode(buttonPin, INPUT_PULLUP); //for joystick button
 
+    pinMode(35, OUTPUT); 
+    pinMode(37, OUTPUT);
+    pinMode(39, OUTPUT); 
+    pinMode(41, OUTPUT);
+    pinMode(43, OUTPUT);
+    pinMode(45, OUTPUT);
+
+    digitalWrite(35, LOW);
+    digitalWrite(37, LOW);
+    digitalWrite(39, LOW);
+    digitalWrite(41, LOW);
+    digitalWrite(43, LOW);
+    digitalWrite(45, LOW);
+    
+    
   Scheduler_Init();
  
   // Start task arguments are:
   // Start offset in ms, period in ms, function callback
  
   Scheduler_StartTask(0, 100, buttonTask);
-  Scheduler_StartTask(4, 100, servoXTask);
+  Scheduler_StartTask(2, 100, servoXTask);
 //  Scheduler_StartTask(6, 100, servoYTask);
-  Scheduler_StartTask(0, 100, roombaTask);
+  Scheduler_StartTask(20, 100, roombaTask);
   Scheduler_StartTask(8, 300, lcdTask);
+  Scheduler_StartTask(2, 200, lightSensorTask);
   
   //Scheduler_StartTask(0, 300, pulse_pin2_task);
 }
