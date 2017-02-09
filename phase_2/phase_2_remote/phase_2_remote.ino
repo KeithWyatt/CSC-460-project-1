@@ -52,7 +52,7 @@ int oldYPos = 1500;                 // old current Y servo position
 
 void task_read_bluetooth()
 {
-  digitalWrite(8,HIGH);
+  digitalWrite(7,HIGH);
 
   hw_addr = Serial1.read();
   hw_instr = Serial1.read();
@@ -80,7 +80,7 @@ void task_read_bluetooth()
       // If the hardware address is unknown, do nothing.
       break;
   }  
-  digitalWrite(8,LOW);
+  digitalWrite(7,LOW);
 }
 
 void lightSensorTask()
@@ -131,7 +131,7 @@ void task_drive_roomba()
 
 void task_control_laser()
 {
-  digitalWrite(9,HIGH);
+  digitalWrite(8,HIGH);
 
   // determine if laser should be on or off given the state of the button
   if (buttonState == 0)
@@ -142,12 +142,12 @@ void task_control_laser()
   {
    digitalWrite (laserPin, LOW);               // Turn Laser off
   }
-  digitalWrite(9,LOW);  
+  digitalWrite(8,LOW);  
 }
 
 void task_control_servo()
 {
-  digitalWrite(10,HIGH);
+  digitalWrite(9,HIGH);
   
 //  Serial.print("servoX: ");
 //  Serial.print(servoX);
@@ -225,7 +225,7 @@ void task_control_servo()
   servoX = 122;
   servoY = 125;
   
-  digitalWrite(10,LOW); 
+  digitalWrite(9,LOW); 
 }
 
 // idle task
@@ -256,23 +256,23 @@ void setup() {
   pinMode (laserPin, OUTPUT);                             // Setting laser pin as output
 
   // Set pins for logic analyzer testing
-  pinMode(8, OUTPUT);                                     // testing task_read_bluetooth
-  pinMode(9,OUTPUT);                                      // testing task_control_servo
-  pinMode(10,OUTPUT);                                     // testing task_control laser
+  pinMode(7, OUTPUT);                                     // testing task_read_bluetooth
+  pinMode(8,OUTPUT);                                      // testing task_control_servo
+  pinMode(9,OUTPUT);                                     // testing task_control laser
   pinMode(11,OUTPUT);                                     // testing task_drive_roomba
   pinMode(12,OUTPUT);                                     // testing idle time
+  digitalWrite(7, LOW);
   digitalWrite(8, LOW);
   digitalWrite(9, LOW);
-  digitalWrite(10, LOW);
   digitalWrite(11, LOW);
   digitalWrite(12,LOW);
 
   Scheduler_Init();
 
-  Scheduler_StartTask(0,100, task_read_bluetooth);
-  Scheduler_StartTask(45,100, task_drive_roomba);
-  Scheduler_StartTask(30, 100, task_control_laser);
-  Scheduler_StartTask(12, 100, task_control_servo);
+  Scheduler_StartTask(30,25, task_read_bluetooth);
+  Scheduler_StartTask(0,50, task_control_servo);
+  Scheduler_StartTask(0,70, task_drive_roomba);
+  Scheduler_StartTask(0,80, task_control_laser); 
 }
 
 void loop() {
