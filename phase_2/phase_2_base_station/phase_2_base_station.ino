@@ -114,7 +114,7 @@ void roombaTask()
   digitalWrite(41, LOW);
 }
 
-void servoXTask()
+void servoTask()
 {
  
   digitalWrite(43, HIGH);
@@ -144,9 +144,7 @@ void servoXTask()
 void lcdTask()
 {
   /*
-  oldYValue < 30 || oldYValue > 990 || oldXValue <30 || oldXValue > 990)
-  MIGHT NEED TO ADD BACK INTO THE IF STATEMENT
- 
+
   // stops the LCD from updating joystick x and y axis info for small changes 
   if( (oldServoXValue > (servoXValue + 5)) || (oldServoXValue < (servoXValue - 5)) || 
   (oldServoYValue > (servoYValue + 5)) || (oldServoYValue < (servoYValue - 5)) ||   
@@ -216,13 +214,11 @@ void setup()
   // Start offset in ms, period in ms, function callback
  
   Scheduler_StartTask(0, 100, buttonTask);
-  Scheduler_StartTask(2, 100, servoXTask);
-//  Scheduler_StartTask(6, 100, servoYTask);
+  Scheduler_StartTask(2, 100, servoTask);
   Scheduler_StartTask(20, 100, roombaTask);
   Scheduler_StartTask(8, 300, lcdTask);
   Scheduler_StartTask(2, 200, lightSensorTask);
   
-  //Scheduler_StartTask(0, 300, pulse_pin2_task);
 }
 void loop()
 {
