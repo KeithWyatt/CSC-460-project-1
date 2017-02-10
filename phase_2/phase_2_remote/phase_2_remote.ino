@@ -28,10 +28,13 @@ int roomba_directionY = 125;
 int servoX = 122;                   // value read from the joystick X
 int servoY = 125;                   // value read from the joystick Y
 
+int servoX_steps = 0;
+int servoY_steps = 0;
+
 int buttonState = 1;                // button is not pressed
 
-volatile int hw_addr;               // variable to store which device to control
-volatile int hw_instr;              // variable to store an instruction to give the device
+volatile int hw_addr =  0;               // variable to store which device to control
+volatile int hw_instr = 0;              // variable to store an instruction to give the device
 
 
 
@@ -49,7 +52,7 @@ int oldYPos = 1500;                 // old current Y servo position
 
 void task_read_bluetooth()
 {
-  digitalWrite(8,HIGH);
+  digitalWrite(7,HIGH);
 
   hw_addr = Serial1.read();
   hw_instr = Serial1.read();
@@ -76,9 +79,8 @@ void task_read_bluetooth()
     default:
       // If the hardware address is unknown, do nothing.
       break;
-  }
-  
-  digitalWrite(8,LOW);
+  }  
+  digitalWrite(7,LOW);
 }
 
 void lightSensorTask()
@@ -91,13 +93,7 @@ void lightSensorTask()
 
 void task_drive_roomba()
 {
-  Serial.print("r_dirx ");
-  Serial.print(roomba_directionX);
-  Serial.println();
-
-  Serial.print("r_diry ");
-  Serial.print(roomba_directionY); 
-  Serial.println();
+  digitalWrite(11, HIGH);  
 
   if(roomba_directionX == 122 && roomba_directionY == 125)
   {
@@ -106,27 +102,23 @@ void task_drive_roomba()
   
   if(roomba_directionX < 100)
   {
-    Serial.print("r_dirx<100 ");
-    Serial.print(roomba_directionX);
+
     roombie.drive(50,-1);
   }
   else if(roomba_directionX > 150)
   {
-    Serial.print("r_dirx>150 ");
-    Serial.print(roomba_directionX);    
+    
     roombie.drive(50,1);
   }
 
   if(roomba_directionY < 100)
   {
-    Serial.print("r_diry<100 ");
-    Serial.print(roomba_directionY);    
+  
     roombie.drive(-150,32768);
   }
   else if(roomba_directionY > 150)
   {
-    Serial.print("r_dirx>150 ");
-    Serial.print(roomba_directionY);
+
     roombie.drive(150,32768);
   }
    
@@ -134,12 +126,12 @@ void task_drive_roomba()
   roomba_directionX = 122;
   roomba_directionY = 125;
 
-
+  digitalWrite(11, LOW);
 }
 
 void task_control_laser()
 {
-  digitalWrite(9,HIGH);
+  digitalWrite(8,HIGH);
 
   // determine if laser should be on or off given the state of the button
   if (buttonState == 0)
@@ -150,19 +142,24 @@ void task_control_laser()
   {
    digitalWrite (laserPin, LOW);               // Turn Laser off
   }
-  
-  digitalWrite(9,LOW);  
+  digitalWrite(8,LOW);  
 }
 
 void task_control_servo()
 {
-  digitalWrite(10,HIGH);
+  digitalWrite(9,HIGH);
   
+//  Serial.print("servoX: ");
+//  Serial.print(servoX);
+//  Serial.println();
+//  Serial.print("servoY: ");
+//  Serial.print(servoY);
+//  Serial.println();
   // determine which direction to move pan servo
   if( servoX > 150){
-    
+    servoX_steps = servoX - 150;
     // increment only 100 steps at one time     
-    for(currentX = oldXPos; currentX >= (oldXPos-100); currentX -= 1)     // moves servo X position to the left
+    for(currentX = oldXPos; currentX >= (oldXPos-servoX_steps); currentX -= 1)     // moves servo X position to the left
     {                      
       myservoX.writeMicroseconds(currentX);                               // tell servo to go to position in variable 'currentX' 
       delayMicroseconds(2500);                                            // waits 2.5ms for the servo to reach the position 
@@ -177,8 +174,9 @@ void task_control_servo()
     oldXPos=currentX;
   }
    else if( servoX < 100) 
-  {  
-    for(currentX = oldXPos; currentX <= (oldXPos+100); currentX += 1)     // moves servo X position to the right
+  {
+    servoX_steps = 100 - servoX;
+    for(currentX = oldXPos; currentX <= (oldXPos+servoX_steps); currentX += 1)     // moves servo X position to the right
     {                              
       myservoX.writeMicroseconds(currentX);                               // tell servo to go to position in variable 'currentX' 
       delayMicroseconds(2500);                                            // waits 2.5ms for the servo to reach the position 
@@ -194,7 +192,8 @@ void task_control_servo()
   // determine which direction to move tilt servo
   if( servoY > 150)
   {
-    for(currentY = oldYPos; currentY >= (oldYPos-100); currentY -= 1)     // tilt servoY up
+    servoY_steps = servoY - 150;
+    for(currentY = oldYPos; currentY >= (oldYPos-servoY_steps); currentY -= 1)     // tilt servoY up
     {                              
       myservoY.writeMicroseconds(currentY);                               // tell servo to go to position in variable 'currentY' 
       delayMicroseconds(2500);                                            // waits 2.5ms for the servo to reach the position 
@@ -208,7 +207,8 @@ void task_control_servo()
   }
   else if( servoY < 100)
   {
-    for(currentY = oldYPos; currentY <= (oldYPos+100); currentY += 1)     // tilt servoY down
+    servoY_steps = 100 - servoY;
+    for(currentY = oldYPos; currentY <= (oldYPos+servoY_steps); currentY += 1)     // tilt servoY down
     {                              
       myservoY.writeMicroseconds(currentY);                               // tell servo to go to position in variable 'currentY' 
       delayMicroseconds(2500);                                            // waits 2.5ms for the servo to reach the position 
@@ -225,7 +225,7 @@ void task_control_servo()
   servoX = 122;
   servoY = 125;
   
-  digitalWrite(10,LOW); 
+  digitalWrite(9,LOW); 
 }
 
 // idle task
@@ -234,8 +234,9 @@ void task_idle(uint32_t idle_period)
   // this function can perform some low-priority task while the scheduler has nothing to run.
   // It should return before the idle period (measured in ms) has expired.  For example, it
   // could sleep or respond to I/O.
-
+  digitalWrite(12,HIGH);
   delay(idle_period);
+  digitalWrite(12,LOW);
 }
 
 void setup() {
@@ -255,19 +256,23 @@ void setup() {
   pinMode (laserPin, OUTPUT);                             // Setting laser pin as output
 
   // Set pins for logic analyzer testing
-  pinMode(8, OUTPUT);                                     // testing task_read_bluetooth
-  pinMode(9,OUTPUT);                                      // testing task_control_servo
-  pinMode(10,OUTPUT);                                     // testing task_control laser
+  pinMode(7, OUTPUT);                                     // testing task_read_bluetooth
+  pinMode(8,OUTPUT);                                      // testing task_control_servo
+  pinMode(9,OUTPUT);                                     // testing task_control laser
+  pinMode(11,OUTPUT);                                     // testing task_drive_roomba
+  pinMode(12,OUTPUT);                                     // testing idle time
+  digitalWrite(7, LOW);
   digitalWrite(8, LOW);
   digitalWrite(9, LOW);
-  digitalWrite(10, LOW);
+  digitalWrite(11, LOW);
+  digitalWrite(12,LOW);
 
   Scheduler_Init();
 
-  Scheduler_StartTask(0,100, task_read_bluetooth);
-  Scheduler_StartTask(45,100, task_drive_roomba);
-  Scheduler_StartTask(30, 100, task_control_laser);
-  Scheduler_StartTask(12, 100, task_control_servo);
+  Scheduler_StartTask(30,25, task_read_bluetooth);
+  Scheduler_StartTask(0,50, task_control_servo);
+  Scheduler_StartTask(0,70, task_drive_roomba);
+  Scheduler_StartTask(0,80, task_control_laser); 
 }
 
 void loop() {
