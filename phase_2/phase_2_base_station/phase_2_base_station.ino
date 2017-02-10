@@ -143,14 +143,7 @@ void servoTask()
   
 void lcdTask()
 {
-  /*
-
-  // stops the LCD from updating joystick x and y axis info for small changes 
-  if( (oldServoXValue > (servoXValue + 5)) || (oldServoXValue < (servoXValue - 5)) || 
-  (oldServoYValue > (servoYValue + 5)) || (oldServoYValue < (servoYValue - 5)) ||   
-  (oldButtonState != buttonState))
-  {
-  */  
+    
   digitalWrite(45, HIGH);
 
   lcd.setCursor(0,0);
@@ -160,7 +153,6 @@ void lcdTask()
   lcd.print("Y:");
   lcd.print(servoYValue);
   lcd.print(' ');
-  //lcd.setCursor(13,0);
   lcd.print("B:");
   lcd.print(buttonState);
   if(servoYValue < 10)
@@ -214,10 +206,10 @@ void setup()
   // Start offset in ms, period in ms, function callback
  
   Scheduler_StartTask(0, 100, buttonTask);
-  Scheduler_StartTask(2, 100, servoTask);
-  Scheduler_StartTask(20, 100, roombaTask);
-  Scheduler_StartTask(8, 300, lcdTask);
-  Scheduler_StartTask(2, 200, lightSensorTask);
+  Scheduler_StartTask(35, 150, servoTask);
+  Scheduler_StartTask(20, 150, roombaTask);
+  Scheduler_StartTask(50, 200, lcdTask);
+  Scheduler_StartTask(20, 100, lightSensorTask);
   
 }
 void loop()
